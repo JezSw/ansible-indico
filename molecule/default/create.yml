@@ -1,0 +1,38 @@
+---
+- name: Create Vagrant instance
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    test_user: localadmin
+    test_image: ubuntu24.04-ansible
+  environment:
+    VAGRANT_WSL_ENABLE_WINDOWS_ACCESS: 1
+  tasks:
+    - name: Create SSH Key
+      community.crypto.openssh_keypair:
+        path: "{{ molecule_ephemeral_directory }}/id_molecule"
+        state: present
+    - name: Create containerfile
+      ansible.builtin.template:
+        src: Containerfile
+        dest: "{{ molecule_ephemeral_directory }}/Containerfile"
+        mode: "0644"
+    - name: Ensure Test Image Exists
+      containers.podman.podman_image:
+        path: "{{ molecule_ephemeral_directory }}"
+        name: "{{ test_image }}:latest"
+        pull: false
+    - name: Start Podman Container
+      containers.podman.podman_container:
+        image: "{{ test_image }}"
+        name: "{{ item.container_name }}"
+        privileged: "{{ item.privileged }}"
+        pull: never
+        rm: true
+        state: started
+        ports:
+          - "2222:22"
+        volume:
+          - "{{ molecule_ephemeral_directory }}/id_molecule.pub:/home/{{ test_user }}/.ssh/authorized_keys:ro"
+      loop: "{{ molecule_yml.platforms }}"

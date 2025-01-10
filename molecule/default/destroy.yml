@@ -1,0 +1,17 @@
+---
+- name: Destroy Vagrant instance
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  environment:
+    VAGRANT_WSL_ENABLE_WINDOWS_ACCESS: 1
+  tasks:
+    - name: Stop and Destroy Podman Container
+      containers.podman.podman_container:
+        name: "{{ item.container_name }}"
+        state: absent
+      loop: "{{ molecule_yml.platforms }}"
+    - name: Delete SSH Key
+      community.crypto.openssh_keypair:
+        path: "{{ molecule_ephemeral_directory }}/id_molecule"
+        state: absent

@@ -1,0 +1,8 @@
+---
+- name: Install PostgreSQL
+  vars:
+    postgresql_version: 16
+  ansible.builtin.include_role:
+    name: galaxyproject.postgresql
+    allow_duplicates: false
+    public: false

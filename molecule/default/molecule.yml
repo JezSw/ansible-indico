@@ -1,0 +1,6 @@
+---
+platforms:
+  - name: 127.0.0.1
+    container_name: ubuntu24.04-test
+    privileged: true
+        
