@@ -1,3 +1,9 @@
 ---
-- name: galaxyproject.postgresql
-  version: 1.1.7
+roles:
+  - name: galaxyproject.postgresql
+    version: 1.1.7
+  - name: staticdev.pyenv
+    version: 2.11.0
+collections:
+  - name: community.postgresql
+    version: 3.9.1

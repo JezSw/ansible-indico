@@ -1,8 +1,39 @@
 ---
-- name: Install PostgreSQL
+- name: Install Pre-requisites
+  ansible.builtin.include_tasks:
+    file: pre_requisites.yml
+
+- name: Setup PostgreSQL
+  ansible.builtin.include_tasks:
+    file: postgresql_setup.yml
+
+- name: Create Indico User
+  ansible.builtin.user:
+    name: indico
+    group: www-data
+    home: "{{ indico_home }}"
+    shell: /bin/bash
+    system: true
+    create_home: true
+
+- name: Set Indico Home Directory Permissions
+  ansible.builtin.file:
+    state: directory
+    owner: indico
+    mode: "0755"
+    group: www-data
+    recurse: true
+    path: "{{ indico_home }}"
+
+- name: Check if Indico is already installed
+  ansible.builtin.stat:
+    path: "{{ indico_init_file }}"
+  register: indico_installed
+
+- name: Install Pyenv
   vars:
-    postgresql_version: 16
+    pyenv_python_versions:
+      - "{{ python_version }}"
+    pyenv_global: "{{ python_version }}"
   ansible.builtin.include_role:
-    name: galaxyproject.postgresql
-    allow_duplicates: false
-    public: false
+    name: staticdev.pyenv

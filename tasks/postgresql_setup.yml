@@ -1,0 +1,34 @@
+---
+- name: Install PostgreSQL
+  vars:
+    postgresql_version: 16
+  ansible.builtin.include_role:
+    name: galaxyproject.postgresql
+    allow_duplicates: false
+    public: false
+- name: Create PostgreSQL Database user
+  become: true
+  become_user: postgres
+  community.postgresql.postgresql_user:
+    name: indico
+- name: Create PostgreSQL Database user
+  become: true
+  become_user: postgres
+  community.postgresql.postgresql_db:
+    name: indico
+    state: present
+    owner: indico
+  register: db_create
+  notify:
+    - Restart indico services
+- name: Add extensions to the Indico Database
+  become: true
+  become_user: postgres
+  community.postgresql.postgresql_ext:
+    db: indico
+    name: "{{ item }}"
+  loop:
+    - pg_trgm
+    - unaccent
+  notify:
+    - Restart indico services

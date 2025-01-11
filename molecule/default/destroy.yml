@@ -15,3 +15,7 @@
       community.crypto.openssh_keypair:
         path: "{{ molecule_ephemeral_directory }}/id_molecule"
         state: absent
+    - name: Remove entry from known hosts
+      ansible.builtin.known_hosts:
+        name: 127.0.0.1:2222
+        state: absent

@@ -1,3 +1,11 @@
-#SPDX-License-Identifier: MIT-0
 ---
-# vars file for artemis-beta.indico
+indico_home: /opt/indico
+indico_venv: "{{ indico_home }}/.venv"
+indico_cfg: "{{ indico_home }}/.indico.conf"
+indico_init_file: /opt/indico/.setup_complete
+nginx_config: /etc/nginx/conf.d/indico.conf
+dh_parameters: /etc/ssl/indico/ffdhe2048
+pyenv_path: "{{ ansible_env.HOME }}/.pyenv"
+ssl_certificate_path: /etc/ssl/indico/indico.crt
+ssl_certificate_key_path: /etc/ssl/indico/indico.key
+ssl_dhparam_path: /etc/ssl/indico/ffdhe2048

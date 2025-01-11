@@ -1,0 +1,26 @@
+---
+- name: Create uWSGI Config
+  ansible.builtin.template:
+    src: uwsgi.ini
+    dest: /etc/uwsgi-indico.ini
+    mode: "0640"
+
+- name: Create Indico uWSGI service
+  ansible.builtin.template:
+    src: indico-uwsgi.service
+    dest: /etc/systemd/system/indico-uwsgi.service
+    mode: "0640"
+
+- name: Create NGINX Configuration
+  ansible.builtin.template:
+    src: nginx.conf
+    dest: /etc/nginx/conf.d/indico.conf
+    mode: "0640"
+
+- name: Create TLS Certificate Directory
+  ansible.builtin.file:
+    state: directory
+    path: "{{ ssl_directory }}"
+    mode: "0755"
+    owner: root
+    group: root

@@ -28,6 +28,7 @@
         image: "{{ test_image }}"
         name: "{{ item.container_name }}"
         privileged: "{{ item.privileged }}"
+        systemd: true
         pull: never
         rm: true
         state: started
@@ -35,4 +36,6 @@
           - "2222:22"
         volume:
           - "{{ molecule_ephemeral_directory }}/id_molecule.pub:/home/{{ test_user }}/.ssh/authorized_keys:ro"
+          - /sys/fs/cgroup:/sys/fs/cgroup:ro
+          - /tmp:/tmp
       loop: "{{ molecule_yml.platforms }}"

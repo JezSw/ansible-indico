@@ -1,3 +1,7 @@
-#SPDX-License-Identifier: MIT-0
 ---
-# defaults file for artemis-beta.indico
+python_version: 3.13.1
+python_minor_version: "{{ python_version | regex_search('^3\\.[0-9]+') }}"
+indico_version: 3.3.5
+indico_domain_name: indico.example.com
+indico_http_server_port: 80
+indico_net_traffic_port: 443

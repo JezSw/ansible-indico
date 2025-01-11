@@ -1,0 +1,123 @@
+---
+- name: Install Python Dependencies
+  ansible.builtin.pip:
+    name:
+      - setuptools
+      - wheel
+      - uwsgi
+      - python-ldap
+    state: present
+    virtualenv: "{{ indico_venv }}"
+    virtualenv_command: |
+      {{ pyenv_path }}/{{ python_version }}/bin/python -m venv --upgrade-deps --prompt indico {{ indico_venv }}
+    executable: "{{ indico_venv }}/bin/pip"
+
+- name: Install Indico
+  ansible.builtin.pip:
+    name:
+      - "indico == {{ indico_version }}"
+      - indico_plugins
+    state: present
+
+- name: Install SAML Dependencies
+  ansible.builtin.pip:
+    name:
+      - lxml==5.2.1
+      - xmlsec==1.3.13
+    extra_args: --no-binary
+    virtualenv: "{{ indico_venv }}"
+    state: present
+
+- name: Install Python SAML
+  ansible.builtin.pip:
+    name: python3-saml
+    virtualenv: "{{ indico_venv }}"
+    state: present
+
+- name: Create Indico directories [1/2]
+  become: true
+  become_user: indico
+  ansible.builtin.file:
+    state: directory
+    name: "{{ item }}"
+    owner: indico
+    mode: "0710"
+  loop:
+    - "{{ indico_home }}/cache"
+    - "{{ indico_home }}/log"
+    - "{{ indico_home }}/tmp"
+
+- name: Set archive directory Permissions
+  ansible.builtin.file:
+    state: directory
+    name: "{{ indico_home }}/archive"
+    owner: indico
+    mode: "0750"
+
+- name: Create Indico directories [2/2]
+  become: true
+  become_user: indico
+  ansible.builtin.file:
+    state: directory
+    name: "{{ item }}"
+    owner: indico
+    mode: "0750"
+  loop:
+    - "{{ indico_home }}/web"
+    - "{{ indico_venv }}"
+
+- name: Create Indico Configuration
+  become: true
+  become_user: indico
+  ansible.builtin.template:
+    src: indico.conf
+    dest: "{{ indico_cfg }}"
+    mode: "0640"
+  notify:
+    - Restart indico services
+
+- name: Link Static Directory
+  become: true
+  become_user: indico
+  ansible.builtin.file:
+    src: "{{ indico_venv }}/lib/python{{ python_minor_version }}/site-packages/indico/web/static"
+    state: link
+    path: "{{ indico_home }}/web/static"
+  notify:
+    - Restart indico services
+
+- name: Link Config
+  become: true
+  become_user: indico
+  ansible.builtin.file:
+    src: "{{ indico_cfg }}"
+    state: link
+    dest: "{{ indico_home }}/etc/indico.conf"
+  notify:
+    - Restart indico services
+
+- name: Copy WSGI file
+  become: true
+  become_user: indico
+  ansible.builtin.copy:
+    src: "{{ indico_venv }}/lib/python{{ python_minor_version }}/site-packages/indico/web/indico.wsgi"
+    remote_src: true
+    dest: "{{ indico_home }}/etc/indico.wsgi"
+    mode: "0640"
+  notify:
+    - Restart indico services
+
+- name: Copy Logging Config
+  become: true
+  become_user: indico
+  ansible.builtin.copy:
+    src: "{{ indico_venv }}/lib/python{{ python_minor_version }}/site-packages/indico/logging.yaml.sample"
+    remote_src: true
+    dest: "{{ indico_home }}/logging.yaml"
+    mode: "0640"
+
+- name: Create NGINX directories
+  ansible.builtin.file:
+    state: directory
+    name: "{{ indico_home }}/log/nginx"
+    mode: "0755"
