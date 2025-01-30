@@ -10,12 +10,17 @@ RUN apt-get update && apt-get install -y openssh-server && \
 
 # Allow root login with key-based authentication only
 RUN sed -i 's/^#PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config && \
-    sed -i 's/^#PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config && \
+    sed -i 's/^#PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config && \
     mkdir -p /root/.ssh && chmod 700 /root/.ssh
 
-RUN useradd -m -s /bin/bash {{ test_user }} \
-    && echo 'localadmin:password' | chpasswd
-RUN usermod -aG sudo {{ test_user }}
+# Create localadmin user
+RUN useradd -m -s /bin/bash localadmin && \
+    echo 'localadmin:password' | chpasswd && \
+    usermod -aG sudo localadmin && \
+    mkdir /home/localadmin/.ssh && \
+    chown localadmin:localadmin -R  /home/localadmin/ && \
+    chmod 700 /home/prod_user/.ssh
+
 RUN echo 'localadmin ALL=(ALL) ALL' >> /etc/sudoers
 
 # Expose SSH port
